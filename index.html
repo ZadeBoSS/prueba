@@ -23,13 +23,13 @@
     <script>
         // Función para cargar y mostrar un archivo .epub
         function cargarEPUB(url) {
-            // Crear un objeto del visor EPUB
+            // Crear un visor EPUB
             var viewer = ePubReader("viewer", {
                 restore: true,
                 storage: false,
                 spreads: true
             });
-            
+
             // Cargar el archivo .epub
             var book = ePub(url);
             viewer.open(book);
