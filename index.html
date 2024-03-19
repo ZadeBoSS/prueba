@@ -1,17 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Visor de EPUB</title>
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lector de EPUB</title>
+    <!-- Incluye la biblioteca EPUB.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/epub.js/0.3.2/epub.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        #viewer {
+            width: 100%;
+            height: 100vh;
+        }
+    </style>
 </head>
 <body>
-<div id="viewer">
-    <p>HOLA PROBANDO</p>
-    <img src="Sin título-1.jpg" alt="">
-</div>
+    <div id="viewer"></div>
 
+    <script>
+        // Función para cargar y mostrar un archivo .epub
+        function cargarEPUB(url) {
+            // Crear un objeto del visor EPUB
+            var viewer = ePubReader("viewer", {
+                restore: true,
+                storage: false,
+                spreads: true
+            });
+            
+            // Cargar el archivo .epub
+            var book = ePub(url);
+            viewer.open(book);
+        }
 
+        // Llama a la función para cargar el archivo .epub
+        cargarEPUB("PM1.epub");
+    </script>
 </body>
 </html>
