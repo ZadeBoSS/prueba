@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EPUB</title>
+    <title>Lector de EPUB</title>
     <!-- Incluye la biblioteca EPUB.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/epub.js/0.3.2/epub.min.js"></script>
     <style>
@@ -24,15 +24,11 @@
         // Función para cargar y mostrar un archivo .epub
         function cargarEPUB(url) {
             // Crear un visor EPUB
-            var viewer = ePubReader("viewer", {
-                restore: true,
-                storage: false,
-                spreads: true
-            });
+            var viewer = document.getElementById("viewer");
 
             // Cargar el archivo .epub
             var book = ePub(url);
-            viewer.open(book);
+            book.renderTo(viewer);
         }
 
         // Llama a la función para cargar el archivo .epub
