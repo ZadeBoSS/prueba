@@ -1,38 +1,215 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lector de EPUB</title>
-    <!-- Incluye la biblioteca EPUB.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/epub.js/0.3.2/epub.min.js"></script>
+    <title>Reproductor EPUB Interactivo</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/epubjs/dist/epub.min.js"></script>
     <style>
         body {
+            font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        #controls {
+            display: flex;
+            justify-content: center;
+            padding: 10px;
+            background-color: #f0f0f0;
         }
         #viewer {
-            width: 100%;
-            height: 100vh;
+            flex-grow: 1;
+            overflow: hidden;
+            position: relative;
+        }
+        button {
+            margin: 0 5px;
+            padding: 5px 10px;
+            font-size: 16px;
+        }
+        #file-input {
+            margin-right: 10px;
+        }
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            display: none;
         }
     </style>
 </head>
 <body>
     <div id="viewer"></div>
+    <div id="loading">Cargando...</div>
+    <div id="controls">
+        <input type="file" id="file-input" accept="application/epub+zip">
+        <button id="prev">Anterior</button>
+        <button id="next">Siguiente</button>
+    </div>
 
     <script>
-        // Función para cargar y mostrar un archivo .epub
-        function cargarEPUB(url) {
-            // Crear un visor EPUB
-            var viewer = document.getElementById("viewer");
+        let currentBook = null;
+        let currentRendition = null;
 
-            // Cargar el archivo .epub
-            var book = ePub(url);
-            book.renderTo(viewer);
+        async function loadEpub(epubFile) {
+            document.getElementById('loading').style.display = 'block';
+            
+            try {
+                if (currentBook) {
+                    currentBook.destroy();
+                }
+
+                currentBook = ePub(epubFile);
+                
+                currentRendition = currentBook.renderTo("viewer", {
+                    width: "100%",
+                    height: "100%",
+                    spread: "always",
+                    allowScriptedContent: true
+                });
+
+                await currentRendition.display();
+
+                currentRendition.on("rendered", (section) => {
+                    const contents = section.contents;
+                    
+                    // Manejar clics en enlaces
+                    contents.addEventListener("click", (event) => {
+                        if (event.target.tagName.toLowerCase() === 'a') {
+                            event.preventDefault();
+                            const href = event.target.getAttribute('href');
+                            if (href) {
+                                currentRendition.display(href);
+                            }
+                        }
+                    });
+
+                    // Manejar interactividad para botones, audio y video
+                    contents.addEventListener("click", handleInteractiveElements);
+
+                    // Permitir que las animaciones y scripts se ejecuten
+                    const scripts = contents.querySelectorAll('script');
+                    scripts.forEach(script => {
+                        if (script.type === "text/javascript") {
+                            try {
+                                eval(script.textContent);
+                                console.log('Script ejecutado:', script.textContent);
+                            } catch (error) {
+                                console.error('Error al ejecutar script:', error);
+                            }
+                        }
+                    });
+
+                    // Habilitar reproducción de audio y video
+                    enableMediaPlayback(contents);
+                });
+
+                document.getElementById("prev").addEventListener("click", () => {
+                    currentRendition.prev();
+                });
+
+                document.getElementById("next").addEventListener("click", () => {
+                    currentRendition.next();
+                });
+
+                // Manejar gestos táctiles para dispositivos móviles
+                let touchStartX = null;
+                document.getElementById("viewer").addEventListener("touchstart", (e) => {
+                    touchStartX = e.touches[0].screenX;
+                }, false);
+
+                document.getElementById("viewer").addEventListener("touchend", (e) => {
+                    if (touchStartX === null) {
+                        return;
+                    }
+                    const touchEndX = e.changedTouches[0].screenX;
+                    const diff = touchStartX - touchEndX;
+                    if (Math.abs(diff) > 50) {
+                        if (diff > 0) {
+                            currentRendition.next();
+                        } else {
+                            currentRendition.prev();
+                        }
+                    }
+                    touchStartX = null;
+                }, false);
+
+            } catch (error) {
+                console.error('Error al cargar el EPUB:', error);
+                alert('Hubo un error al cargar el archivo EPUB. Por favor, intenta con otro archivo.');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
         }
 
-        // Llama a la función para cargar el archivo .epub
-        cargarEPUB("EPUB_Programación.epub");
+        function handleInteractiveElements(event) {
+            const target = event.target;
+            
+            // Manejar botones
+            if (target.tagName.toLowerCase() === 'button') {
+                event.preventDefault();
+                console.log('Botón clickeado:', target.textContent);
+                const action = target.getAttribute('data-action');
+                if (action) {
+                    switch(action) {
+                        case 'play-audio':
+                            const audioId = target.getAttribute('data-audio-id');
+                            if (audioId) {
+                                const audioElement = document.getElementById(audioId);
+                                if (audioElement) {
+                                    audioElement.play();
+                                }
+                            }
+                            break;
+                        case 'show-image':
+                            // Lógica para mostrar una imagen
+                            break;
+                        // Agrega más casos según sea necesario
+                    }
+                }
+            }
+            
+            // Manejar reproducción de video
+            if (target.tagName.toLowerCase() === 'video') {
+                target.play();
+            }
+        }
+
+        function enableMediaPlayback(contents) {
+            const audioElements = contents.querySelectorAll('audio');
+            audioElements.forEach(audio => {
+                audio.controls = true;
+                audio.play().catch(error => {
+                    console.error('Error al reproducir audio:', error);
+                });
+            });
+
+            const videoElements = contents.querySelectorAll('video');
+            videoElements.forEach(video => {
+                video.controls = true;
+                video.play().catch(error => {
+                    console.error('Error al reproducir video:', error);
+                });
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const fileInput = document.getElementById('file-input');
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file.type === "application/epub+zip") {
+                    loadEpub(file);
+                } else {
+                    alert("Por favor, selecciona un archivo EPUB válido.");
+                }
+            });
+        });
     </script>
 </body>
 </html>
