@@ -4,211 +4,122 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reproductor EPUB Interactivo</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/epubjs/dist/epub.min.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
             display: flex;
             flex-direction: column;
             height: 100vh;
+            background-color: #f7f9fc;
+        }
+        #viewer {
+            flex-grow: 1;
+            padding: 20px;
+            overflow: auto;
         }
         #controls {
             display: flex;
             justify-content: center;
             padding: 10px;
-            background-color: #f0f0f0;
+            background-color: #ffffff;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
         }
-        #viewer {
-            flex-grow: 1;
-            overflow: hidden;
-            position: relative;
-        }
-        button {
+        #controls button {
+            background-color: #0078d4;
+            border: none;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
             margin: 0 5px;
-            padding: 5px 10px;
-            font-size: 16px;
         }
-        #file-input {
-            margin-right: 10px;
+        #controls button:hover {
+            background-color: #005a9e;
         }
-        #loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 24px;
-            display: none;
+        #fullscreen-btn {
+            background-color: #0078d4;
+            border: none;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        #fullscreen-btn:hover {
+            background-color: #005a9e;
+        }
+        :fullscreen #viewer {
+            margin: 0;
+            height: 100vh;
+        }
+        :fullscreen #controls {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
         }
     </style>
 </head>
 <body>
     <div id="viewer"></div>
-    <div id="loading">Cargando...</div>
     <div id="controls">
         <button id="prev">Anterior</button>
-        <input type="file" id="file-input" accept="application/epub+zip">
         <button id="next">Siguiente</button>
+        <button id="fullscreen-btn">Pantalla Completa</button>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/epubjs/dist/epub.min.js"></script>
     <script>
         let currentBook = null;
         let currentRendition = null;
 
         async function loadEpub(epubFile) {
-            document.getElementById('loading').style.display = 'block';
-            
             try {
                 if (currentBook) {
                     currentBook.destroy();
                 }
 
                 currentBook = ePub(epubFile);
-                
                 currentRendition = currentBook.renderTo("viewer", {
                     width: "100%",
                     height: "100%",
-                    spread: "always",
-                    allowScriptedContent: true
                 });
 
                 await currentRendition.display();
 
-                currentRendition.on("rendered", (section) => {
-                    const contents = section.contents;
-                    
-                    // Manejar clics en enlaces
-                    contents.addEventListener("click", (event) => {
-                        if (event.target.tagName.toLowerCase() === 'a') {
-                            event.preventDefault();
-                            const href = event.target.getAttribute('href');
-                            if (href) {
-                                currentRendition.display(href);
-                            }
-                        }
-                    });
-
-                    // Manejar interactividad para botones, audio y video
-                    contents.addEventListener("click", handleInteractiveElements);
-
-                    // Permitir que las animaciones y scripts se ejecuten
-                    const scripts = contents.querySelectorAll('script');
-                    scripts.forEach(script => {
-                        if (script.type === "text/javascript") {
-                            try {
-                                eval(script.textContent);
-                                console.log('Script ejecutado:', script.textContent);
-                            } catch (error) {
-                                console.error('Error al ejecutar script:', error);
-                            }
-                        }
-                    });
-
-                    // Habilitar reproducción de audio y video
-                    enableMediaPlayback(contents);
-                });
-
                 document.getElementById("prev").addEventListener("click", () => {
-                    currentRendition.prev();
+                    if (currentRendition) {
+                        currentRendition.prev();
+                    }
                 });
 
                 document.getElementById("next").addEventListener("click", () => {
-                    currentRendition.next();
+                    if (currentRendition) {
+                        currentRendition.next();
+                    }
                 });
-
-                // Manejar gestos táctiles para dispositivos móviles
-                let touchStartX = null;
-                document.getElementById("viewer").addEventListener("touchstart", (e) => {
-                    touchStartX = e.touches[0].screenX;
-                }, false);
-
-                document.getElementById("viewer").addEventListener("touchend", (e) => {
-                    if (touchStartX === null) {
-                        return;
-                    }
-                    const touchEndX = e.changedTouches[0].screenX;
-                    const diff = touchStartX - touchEndX;
-                    if (Math.abs(diff) > 50) {
-                        if (diff > 0) {
-                            currentRendition.next();
-                        } else {
-                            currentRendition.prev();
-                        }
-                    }
-                    touchStartX = null;
-                }, false);
 
             } catch (error) {
                 console.error('Error al cargar el EPUB:', error);
-                alert('Hubo un error al cargar el archivo EPUB. Por favor, intenta con otro archivo.');
-            } finally {
-                document.getElementById('loading').style.display = 'none';
             }
         }
 
-        function handleInteractiveElements(event) {
-            const target = event.target;
-            
-            // Manejar botones
-            if (target.tagName.toLowerCase() === 'button') {
-                event.preventDefault();
-                console.log('Botón clickeado:', target.textContent);
-                const action = target.getAttribute('data-action');
-                if (action) {
-                    switch(action) {
-                        case 'play-audio':
-                            const audioId = target.getAttribute('data-audio-id');
-                            if (audioId) {
-                                const audioElement = document.getElementById(audioId);
-                                if (audioElement) {
-                                    audioElement.play();
-                                }
-                            }
-                            break;
-                        case 'show-image':
-                            // Lógica para mostrar una imagen
-                            break;
-                        // Agrega más casos según sea necesario
-                    }
-                }
-            }
-            
-            // Manejar reproducción de video
-            if (target.tagName.toLowerCase() === 'video') {
-                target.play();
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
             }
         }
 
-        function enableMediaPlayback(contents) {
-            const audioElements = contents.querySelectorAll('audio');
-            audioElements.forEach(audio => {
-                audio.controls = true;
-                audio.play().catch(error => {
-                    console.error('Error al reproducir audio:', error);
-                });
-            });
+        document.getElementById('fullscreen-btn').addEventListener('click', toggleFullscreen);
 
-            const videoElements = contents.querySelectorAll('video');
-            videoElements.forEach(video => {
-                video.controls = true;
-                video.play().catch(error => {
-                    console.error('Error al reproducir video:', error);
-                });
-            });
-        }
-
+        // Example of loading an EPUB file
         document.addEventListener("DOMContentLoaded", () => {
-            const fileInput = document.getElementById('file-input');
-            fileInput.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (file.type === "application/epub+zip") {
-                    loadEpub(file);
-                } else {
-                    alert("Por favor, selecciona un archivo EPUB válido.");
-                }
-            });
+            const exampleEpubUrl = "URL_DE_TU_ARCHIVO_EPUB";
+            loadEpub(exampleEpubUrl);
         });
     </script>
 </body>
