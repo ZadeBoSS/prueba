@@ -9,319 +9,322 @@
     <script src="https://cdn.jsdelivr.net/npm/epubjs/dist/epub.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-/* Estilo global del cuerpo */
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    background-color: #f4f6f9;
-    overflow: hidden; /* Evita el scroll inesperado */
-}
+        /* Estilo global del cuerpo */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #f4f6f9;
+            overflow: hidden;
+            /* Evita el scroll inesperado */
+        }
 
-/* Estilo para la barra lateral */
-#sidebar {
-    width: 70vw;
-    max-width: 320px;
-    background-color: #ffffff;
-    padding: 20px;
-    position: fixed;
-    left: -70vw;
-    top: 0;
-    height: 100%;
-    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
-    transition: transform 0.3s ease;
-    z-index: 200;
-    overflow-y: auto; /* Permite scroll interno si el contenido es largo */
-}
+        /* Estilo para la barra lateral */
+        #sidebar {
+            width: 70vw;
+            max-width: 320px;
+            background-color: #ffffff;
+            padding: 20px;
+            position: fixed;
+            left: -70vw;
+            top: 0;
+            height: 100%;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+            z-index: 200;
+            overflow-y: auto;
+            /* Permite scroll interno si el contenido es largo */
+        }
 
-#sidebar.show {
-    transform: translateX(70vw);
-}
+        #sidebar.show {
+            transform: translateX(70vw);
+        }
 
-#sidebar h3 {
-    font-size: 1.8rem;
-    margin: 0 0 20px;
-    color: #333;
-    border-bottom: 3px solid #0078d4;
-    padding-bottom: 10px;
-}
+        #sidebar h3 {
+            font-size: 1.8rem;
+            margin: 0 0 20px;
+            color: #333;
+            border-bottom: 3px solid #0078d4;
+            padding-bottom: 10px;
+        }
 
-#epub-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
+        #epub-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
 
-#epub-list li {
-    margin-bottom: 15px;
-}
+        #epub-list li {
+            margin-bottom: 15px;
+        }
 
-#epub-list li button {
-    background-color: #0078d4;
-    border: none;
-    color: white;
-    cursor: pointer;
-    font-size: 1.1rem;
-    padding: 12px 15px;
-    border-radius: 8px;
-    width: 100%;
-    text-align: left;
-    transition: background-color 0.3s, transform 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 10px; /* Espacio entre el texto y el icono si es necesario */
-}
+        #epub-list li button {
+            background-color: #0078d4;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 12px 15px;
+            border-radius: 8px;
+            width: 100%;
+            text-align: left;
+            transition: background-color 0.3s, transform 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            /* Espacio entre el texto y el icono si es necesario */
+        }
 
-#epub-list li button:hover {
-    background-color: #005a9e;
-    transform: scale(1.05);
-}
+        #epub-list li button:hover {
+            background-color: #005a9e;
+            transform: scale(1.05);
+        }
 
-/* Estilo para el visor del EPUB */
-#viewer {
-    flex-grow: 1;
-    margin-left: 0;
-    transition: margin-left 0.3s ease;
-    position: relative;
-    padding: 3%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: #ffffff;
-}
+        /* Estilo para el visor del EPUB */
+        #viewer {
+            flex-grow: 1;
+            margin-left: 0;
+            transition: margin-left 0.3s ease;
+            position: relative;
+            padding: 3%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #ffffff;
+        }
 
-#viewer iframe {
-    display: block;
-    width: 100%;
-    height: 100%;
-    border: none;
-}
+        #viewer iframe {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
 
-/* Estilo para los controles del reproductor */
-#controls {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    padding: 12px 20px;
-    background-color: rgba(255, 255, 255, 0.9);
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    box-sizing: border-box;
-    z-index: 300;
-    box-shadow: 0 -2px 15px rgba(0, 0, 0, 0.2);
-    transition: background-color 0.3s;
-}
+        /* Estilo para los controles del reproductor */
+        #controls {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 12px 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            box-sizing: border-box;
+            z-index: 300;
+            box-shadow: 0 -2px 15px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s;
+        }
 
-#controls button,
-#controls .file-btn {
-    margin: 0 5px;
-    padding: 12px 15px;
-    border: none;
-    border-radius: 8px;
-    background-color: #0078d4;
-    color: white;
-    cursor: pointer;
-    transition: background-color 0.3s, transform 0.2s;
-    font-size: 1.1rem;
-}
+        #controls button,
+        #controls .file-btn {
+            margin: 0 5px;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 8px;
+            background-color: #0078d4;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            font-size: 1.1rem;
+        }
 
-#controls button:hover,
-#controls .file-btn:hover {
-    background-color: #005a9e;
-    transform: scale(1.05);
-}
+        #controls button:hover,
+        #controls .file-btn:hover {
+            background-color: #005a9e;
+            transform: scale(1.05);
+        }
 
-#controls i {
-    font-size: 1.4rem;
-}
+        #controls i {
+            font-size: 1.4rem;
+        }
 
-/* Ocultar el input de archivo */
-#file-input {
-    display: none;
-}
+        /* Ocultar el input de archivo */
+        #file-input {
+            display: none;
+        }
 
-/* Estilo para el indicador de carga */
-#loading {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 2rem;
-    font-weight: bold;
-    color: #0078d4;
-    display: none;
-}
+        /* Estilo para el indicador de carga */
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2rem;
+            font-weight: bold;
+            color: #0078d4;
+            display: none;
+        }
 
-/* Estilo para el botón de alternar la barra lateral */
-#toggle-sidebar {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    background-color: #0078d4;
-    color: white;
-    border: none;
-    padding: 12px;
-    font-size: 1.4rem;
-    cursor: pointer;
-    border-radius: 50%;
-    transition: background-color 0.3s, transform 0.2s;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    z-index: 301;
-}
+        /* Estilo para el botón de alternar la barra lateral */
+        #toggle-sidebar {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #0078d4;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 1.4rem;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 301;
+        }
 
-#toggle-sidebar:hover {
-    background-color: #035391;
-    transform: scale(1.1);
-}
+        #toggle-sidebar:hover {
+            background-color: #035391;
+            transform: scale(1.1);
+        }
 
-/* Estilo para el botón de pantalla completa */
-#fullscreen-btn {
-    background-color: #0078d4;
-    border: none;
-    color: white;
-    font-size: 1rem;
-    padding: 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.3s, transform 0.2s;
-}
+        /* Estilo para el botón de pantalla completa */
+        #fullscreen-btn {
+            background-color: #0078d4;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
 
-#fullscreen-btn:hover {
-    background-color: #005a9e;
-    transform: scale(1.05);
-}
+        #fullscreen-btn:hover {
+            background-color: #005a9e;
+            transform: scale(1.05);
+        }
 
-/* Estilo para los controles en pantalla completa */
-:fullscreen #viewer {
-    margin: 0;
-}
+        /* Estilo para los controles en pantalla completa */
+        :fullscreen #viewer {
+            margin: 0;
+        }
 
-:fullscreen #controls {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    box-shadow: 0 -2px 15px rgba(0, 0, 0, 0.3);
-    background-color: rgba(255, 255, 255, 0.9); /* Fondo semitransparente */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-}
+        :fullscreen #controls {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            box-shadow: 0 -2px 15px rgba(0, 0, 0, 0.3);
+            background-color: rgba(255, 255, 255, 0.9);
+            /* Fondo semitransparente */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
 
-#fullscreen-controls {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    pointer-events: none;
-}
+        #fullscreen-controls {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+        }
 
-#fs-prev,
-#fs-next {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background-color: rgba(0, 120, 212, 0.8);
-    color: white;
-    border: none;
-    font-size: 1.8rem;
-    padding: 15px;
-    cursor: pointer;
-    pointer-events: auto;
-    transition: background-color 0.3s, opacity 0.3s;
-    opacity: 0.6;
-}
+        #fs-prev,
+        #fs-next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 120, 212, 0.8);
+            color: white;
+            border: none;
+            font-size: 1.8rem;
+            padding: 15px;
+            cursor: pointer;
+            pointer-events: auto;
+            transition: background-color 0.3s, opacity 0.3s;
+            opacity: 0.6;
+        }
 
-#fs-prev:hover,
-#fs-next:hover {
-    background-color: rgba(0, 90, 158, 0.9);
-    opacity: 1;
-}
+        #fs-prev:hover,
+        #fs-next:hover {
+            background-color: rgba(0, 90, 158, 0.9);
+            opacity: 1;
+        }
 
-#fs-prev {
-    left: 0;
-    border-radius: 0 8px 8px 0;
-}
+        #fs-prev {
+            left: 0;
+            border-radius: 0 8px 8px 0;
+        }
 
-#fs-next {
-    right: 0;
-    border-radius: 8px 0 0 8px;
-}
+        #fs-next {
+            right: 0;
+            border-radius: 8px 0 0 8px;
+        }
 
-:fullscreen #fullscreen-controls {
-    display: block;
-}
+        :fullscreen #fullscreen-controls {
+            display: block;
+        }
 
-/* Estilos responsivos para dispositivos móviles */
-@media (max-width: 768px) {
-    #sidebar {
-        width: 100vw;
-        left: -100vw;
-        max-width: none;
-        padding: 15px;
-        height: 100%;
-    }
+        /* Estilos responsivos para dispositivos móviles */
+        @media (max-width: 768px) {
+            #sidebar {
+                width: 100vw;
+                left: -100vw;
+                max-width: none;
+                padding: 15px;
+                height: 100%;
+            }
 
-    #sidebar.show {
-        transform: translateX(100vw);
-    }
+            #sidebar.show {
+                transform: translateX(100vw);
+            }
 
-    #sidebar h3 {
-        font-size: 1.5rem;
-    }
+            #sidebar h3 {
+                font-size: 1.5rem;
+            }
 
-    #epub-list li button {
-        font-size: 1rem;
-        padding: 10px;
-    }
+            #epub-list li button {
+                font-size: 1rem;
+                padding: 10px;
+            }
 
-    #viewer {
-        padding: 2%;
-    }
+            #viewer {
+                padding: 2%;
+            }
 
-    #controls {
-        flex-direction: row;
-        width: 100%;
-        box-sizing: border-box;
-        padding: 10px;
-        margin: 0;
-    }
+            #controls {
+                flex-direction: row;
+                width: 100%;
+                box-sizing: border-box;
+                padding: 10px;
+                margin: 0;
+            }
 
-    #controls button,
-    #controls .file-btn {
-        margin: 5px 0;
-        font-size: 1rem;
-        padding: 10px;
-    }
+            #controls button,
+            #controls .file-btn {
+                margin: 5px 0;
+                font-size: 1rem;
+                padding: 10px;
+            }
 
-    #controls i {
-        font-size: 1.2rem;
-    }
+            #controls i {
+                font-size: 1.2rem;
+            }
 
-    #toggle-sidebar {
-        font-size: 1.2rem;
-        padding: 10px;
-    }
+            #toggle-sidebar {
+                font-size: 1.2rem;
+                padding: 10px;
+            }
 
-    #fullscreen-btn {
-        font-size: 0.9rem;
-        padding: 10px;
-    }
+            #fullscreen-btn {
+                font-size: 0.9rem;
+                padding: 10px;
+            }
 
-    #fs-prev,
-    #fs-next {
-        font-size: 1.5rem;
-        padding: 12px;
-    }
-}
-
-            </style>
+            #fs-prev,
+            #fs-next {
+                font-size: 1.5rem;
+                padding: 12px;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -342,6 +345,7 @@ body {
         <button class="file-btn" id="file-btn"><i class="fas fa-upload"></i> Cargar EPUB</button>
         <button id="next"><i class="fas fa-chevron-right"></i></button>
         <button id="fetch-epub"><i class="fas fa-book"></i></button>
+        <button id="index-btn"><i class="fas fa-list"></i> Índice</button> <!-- Botón de Índice -->
         <button id="fullscreen-btn"><i class="fas fa-expand"></i></button>
     </div>
     <input type="file" id="file-input" accept="application/epub+zip" />
@@ -359,6 +363,47 @@ body {
         const fsPrevButton = document.getElementById('fs-prev');
         const fsNextButton = document.getElementById('fs-next');
         const fileInput = document.getElementById('file-input');
+
+        // Nueva función para mostrar el índice del EPUB
+        document.getElementById('index-btn').addEventListener('click', () => {
+            const input = document.getElementById('file-input');
+            const file = input.files[0];
+            if (file && file.type === 'application/epub+zip') {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const zip = new JSZip();
+                    zip.loadAsync(e.target.result).then(function (zip) {
+                        const xhtmlFiles = [];
+                        zip.forEach(function (relativePath, zipEntry) {
+                            if (zipEntry.name.endsWith('.xhtml')) {
+                                xhtmlFiles.push(zipEntry.name);
+                            }
+                        });
+                        const sidebar = document.getElementById('xhtmlFiles');
+                        sidebar.innerHTML = '';
+                        xhtmlFiles.forEach(function (file) {
+                            const link = document.createElement('div');
+                            link.className = 'xhtml-link';
+                            link.textContent = file;
+                            link.onclick = function () {
+                                zip.file(file).async('string').then(function (content) {
+                                    const iframe = document.createElement('iframe');
+                                    iframe.width = "100%";
+                                    iframe.height = "100%";
+                                    iframe.srcdoc = content;
+                                    viewer.innerHTML = ''; // Limpia el viewer antes de cargar nuevo contenido
+                                    viewer.appendChild(iframe);
+                                });
+                            };
+                            sidebar.appendChild(link);
+                        });
+                    });
+                };
+                reader.readAsArrayBuffer(file);
+            } else {
+                alert('Por favor, sube un archivo EPUB válido.');
+            }
+        });
 
         // Función para abrir el diálogo de selección de archivos
         document.getElementById('file-btn').addEventListener('click', () => {
@@ -470,6 +515,7 @@ body {
                     console.log(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
                 });
             } else {
+                currentRendition.style.marginLeft = "10%";
                 document.exitFullscreen();
             }
         }
@@ -525,6 +571,20 @@ body {
             fsPrevButton.addEventListener('click', prevPage);
             fsNextButton.addEventListener('click', nextPage);
         });
+        // Manejar teclas de flecha en modo de pantalla completa
+        document.addEventListener('keydown', (e) => {
+            if (epubContainer.classList.contains('fullscreen-mode')) {
+                if (e.key === 'ArrowLeft') {
+                    prevPage();
+                } else if (e.key === 'ArrowRight') {
+                    nextPage();
+                } else if (e.key === 'Escape') {
+                    toggleFullscreen();
+                }
+            }
+        });
+        viewer.style.padding = "1.5% 9% 5% 9%";
+
     </script>
 </body>
 
