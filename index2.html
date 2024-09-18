@@ -9,31 +9,33 @@
   <script src="https://cdn.jsdelivr.net/npm/epubjs/dist/epub.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <style>
-     
-body{    background:#bbd9a0;}
-  /* Estilo para el visor del EPUB */
+  body{background: #bbd9a0}
+/* Estilo para el visor del EPUB */
 #viewer {
   flex-grow: 1;
   margin-left: 0;
   transition: margin-left 0.3s ease;
   position: relative;
   top: 5vh;
-  left: 10vw;
+  left: 8.5vw;
   bottom: 5vh;
   display: flex;
   justify-content: center;
   align-items: center;
   width: 80vw;
   height: 80vh;
+  border-radius:20px;
 }
 
 #viewer iframe {
-  display: block;
+  display: flex;
   border-radius: 20px;
-  margin: 0 auto;
-  width: 95% !important;
+  width: 99% !important;
   height: 79vh !important;
+  background: red;
   border: 3px solid #000 !important;
+  @media (max-width:768px) {width:98% !important;height: 50% !important;margin: 35% 0 0 0 !important}
+  @media (max-width:390px) and (max-height:844px) {width:97% !important;height: 25.5% !important;margin: 90% 0 0 0 !important}
 }
 
 /* Estilo para los controles del reproductor */
