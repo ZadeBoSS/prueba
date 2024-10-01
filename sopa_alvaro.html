@@ -1,0 +1,315 @@
+<style>
+#act_1_1 {
+  font-family: 'Poppins';
+  max-width: 90vw;
+  width: max-content;
+  margin: 0 auto;
+}
+
+#act_1_1 .word-search-container {
+  width: 70vw;
+  justify-content: space-between;
+  display: flex;
+  margin: 0 auto;
+}
+
+#act_1_1 #word-list {
+  background: #fff;
+  border: #33367c 3px solid;
+  padding: 10px;
+  border-radius: 20px;
+  font-size: 80%;
+  width: 30vw;
+  height: max-content;
+  margin: 0 3% 0 0;
+}
+
+#word-list h2 {
+  text-align: center;
+  margin: 0 0 10px 0;
+  color: #000;
+  font-weight:900;
+}
+
+#word-list ul {
+  width: 100%;
+  list-style-type: none;
+  padding: 0;
+}
+
+#word-list li {
+  font-size: 16px;
+  color: white;
+  background: #33367cb0;
+  border-radius: 10px;
+  border: #fff 3px solid;
+  padding: 2% 3% 2% 5%;
+}
+
+
+#act_1_1 #show-solutions {
+  margin-top: 10px;
+  background-color: #33367c;
+  color: #fff;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+#act_1_1 #word-search-grid {
+  border-collapse: collapse;
+  border: 2px solid #000;
+}
+
+#act_1_1 #word-search-grid td {
+  width: 2vw;
+  height: 2vw;
+  text-align: center;
+  vertical-align: middle;
+  border: 1px solid #000;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+#act_1_1 .grid-cell {
+  background-color: #f0f0f0;
+  /* Color de fondo por defecto */
+}
+
+#act_1_1 .grid-cell:hover {
+  background-color: #33367cb0;
+  /* Efecto hover */
+  color: #fff;
+}
+
+#act_1_1 .grid-cell.selected {
+  background-color: #33367c;
+  /* Color al seleccionar */
+  color: #fff;
+
+}
+
+#act_1_1 .grid-cell.found {
+  background-color: #bbd9a0b0;
+  /* Color al encontrar */
+  cursor: default;
+}
+</style>
+<div id="act_1_1">
+  <div class="word-search-container">
+    <div id="word-list">
+      <h2>PISTAS</h2>
+      <ul id="word-list-ul">
+        <li data-word="TECLADO">1.-
+Sirve para escribir y dar órdenes al ordenador, mientras que la unidad central controla todas sus actividades.</li>
+        <li data-word="RATON">2.-
+Dispositivo periférico conectado al puntero que aparece en pantalla.</li>
+        <li data-word="MICROFONO">3.-
+Dispositivo de entrada que convierte las señales acústicas en señales eléctricas, utilizadas para grabar o transmitir audio.</li>
+        <li data-word="MONITOR">4.-
+Dispositivo de salida que muestra información visual generada por un ordenador, como texto, imágenes o vídeos, en una pantalla.</li>
+        <li data-word="ALTAVOCES">5.-
+Dispositivo de salida que convierte señales eléctricas en sonido, permitiendo escuchar audio generado por un ordenador u otro dispositivo electrónico.</li>
+        <li data-word="IMPRESORA">6.-
+Dispositivo de salida que produce copias físicas de documentos o imágenes generados en una computadora u otro dispositivo, mediante la transferencia de tinta o tóner a papel u otros medios.</li>
+      </ul>
+    </div>
+  <div style="margin: 5% 0 0 0;">
+    <table id="word-search-grid"><!-- La sopa de letras se generará aquí --></table>
+    <div style="width: max-content; margin: 0 auto;"><button id="show-solutions">Mostrar Soluciones</button></div>
+  </div>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const words = ['TECLADO', 'RATON', 'MICROFONO', 'MONITOR', 'ALTAVOCES', 'IMPRESORA'];
+    const gridSize = 21;
+    let grid = Array.from({ length: gridSize }, () => Array(gridSize).fill(''));
+    let wordLocations = {}; // Guardar las ubicaciones de las palabras
+    let isSelecting = false;
+    let gameFinished = false;
+
+    function placeWord(word) {
+        let placed = false;
+        while (!placed) {
+            const row = Math.floor(Math.random() * gridSize);
+            const col = Math.floor(Math.random() * gridSize);
+            const direction = Math.random() < 0.5 ? 'H' : 'V'; // 'H' = horizontal, 'V' = vertical
+
+            if (canPlaceWord(word, row, col, direction)) {
+                for (let i = 0; i < word.length; i++) {
+                    if (direction === 'H') {
+                        grid[row][col + i] = word[i];
+                    } else {
+                        grid[row + i][col] = word[i];
+                    }
+                }
+                wordLocations[word] = { row, col, direction }; // Guardar la ubicación
+                placed = true;
+            }
+        }
+    }
+
+    function canPlaceWord(word, row, col, direction) {
+        for (let i = 0; i < word.length; i++) {
+            if (direction === 'H') {
+                if (col + i >= gridSize || (grid[row][col + i] !== '' && grid[row][col + i] !== word[i])) {
+                    return false;
+                }
+            } else {
+                if (row + i >= gridSize || (grid[row + i][col] !== '' && grid[row + i][col] !== word[i])) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    words.forEach(word => placeWord(word));
+
+    // Rellenar los espacios vacíos con letras aleatorias
+    for (let row = 0; row < gridSize; row++) {
+        for (let col = 0; col < gridSize; col++) {
+            if (grid[row][col] === '') {
+                grid[row][col] = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+            }
+        }
+    }
+
+    // Crear la cuadrícula en HTML
+    const table = document.getElementById('word-search-grid');
+    for (let row = 0; row < gridSize; row++) {
+        const tr = document.createElement('tr');
+        for (let col = 0; col < gridSize; col++) {
+            const td = document.createElement('td');
+            td.textContent = grid[row][col];
+            td.className = 'grid-cell';
+            td.dataset.row = row;
+            td.dataset.col = col;
+
+            // Eventos para ratón
+            td.addEventListener('mousedown', startSelecting);
+            td.addEventListener('mouseover', selectCell);
+            td.addEventListener('mouseup', endSelecting);
+
+            // Eventos para táctil
+            td.addEventListener('touchstart', startSelectingTouch);
+            td.addEventListener('touchmove', selectCellTouch);
+            td.addEventListener('touchend', endSelectingTouch);
+
+            tr.appendChild(td);
+        }
+        table.appendChild(tr);
+    }
+
+    // Eventos de ratón
+    function startSelecting(event) {
+        if (gameFinished) return;
+        isSelecting = true;
+        this.classList.toggle('selected');
+        event.preventDefault();
+    }
+
+    function selectCell() {
+        if (isSelecting && !gameFinished) {
+            this.classList.add('selected');
+        }
+    }
+
+    function endSelecting() {
+        isSelecting = false;
+        checkForWords();
+    }
+
+    // Eventos táctiles
+    function startSelectingTouch(event) {
+        if (gameFinished) return;
+        isSelecting = true;
+        const touch = event.touches[0];
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (target && target.classList.contains('grid-cell')) {
+            target.classList.toggle('selected');
+        }
+        event.preventDefault();
+    }
+
+    function selectCellTouch(event) {
+        if (isSelecting && !gameFinished) {
+            const touch = event.touches[0];
+            const target = document.elementFromPoint(touch.clientX, touch.clientY);
+            if (target && target.classList.contains('grid-cell')) {
+                target.classList.add('selected');
+            }
+        }
+    }
+
+    function endSelectingTouch() {
+        isSelecting = false;
+        checkForWords();
+    }
+
+    function checkForWords() {
+        const selectedCells = document.querySelectorAll('.grid-cell.selected');
+        let selectedWord = '';
+
+        selectedCells.forEach(cell => {
+            selectedWord += cell.textContent;
+        });
+
+        // Verificar si la palabra está en la lista
+        if (words.includes(selectedWord)) {
+            selectedCells.forEach(cell => {
+                cell.classList.add('found');
+                cell.classList.remove('selected');
+            });
+            words.splice(words.indexOf(selectedWord), 1);
+            markWordAsFound(selectedWord); // Marcar la palabra en la lista como encontrada
+        } else {
+            // Si no se encontró la palabra, limpiar la selección
+            selectedCells.forEach(cell => cell.classList.remove('selected'));
+        }
+    }
+
+function markWordAsFound(word) {
+    const listItems = document.querySelectorAll('#word-list-ul li');
+    listItems.forEach(item => {
+        if (item.dataset.word === word) {
+            item.classList.add('tached-word'); // Añadir clase para estilo
+            item.style.backgroundColor = '#255541'; // Color de fondo verde
+            item.style.color = '#fff'; // Color del texto verde oscuro
+        }
+    });
+}
+
+
+    document.getElementById('show-solutions').addEventListener('click', function() {
+        const listItems = document.querySelectorAll('#word-list-ul li');
+        listItems.forEach(item => {
+            const word = item.textContent;
+            if (!item.classList.contains('tached-word')) {
+                item.style.backgroundColor = 'red';
+                item.style.color = '#e19235';
+            }
+        });
+
+        // Resaltar letras de palabras no encontradas en la sopa de letras
+        words.forEach(word => {
+            const location = wordLocations[word];
+            if (location) {
+                const { row, col, direction } = location;
+                for (let i = 0; i < word.length; i++) {
+                    const cell = document.querySelector(`.grid-cell[data-row="${direction === 'H' ? row : row + i}"][data-col="${direction === 'H' ? col + i : col}"]`);
+                    if (cell && !cell.classList.contains('found')) {
+                        cell.style.backgroundColor = 'red';
+                        cell.style.color = '#e19235';
+                    }
+                }
+            }
+        });
+
+        gameFinished = true; // Finaliza la actividad
+    });
+});
+</script>
