@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acordeón Estilo Timeline</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .accordion {
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+        }
+        .accordion-header {
+            background-color: #1de9b6;
+            color: white;
+            cursor: pointer;
+            padding: 18px;
+            width: 100%;
+            text-align: left;
+            border: none;
+            outline: none;
+            transition: 0.4s;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .accordion-header.active {
+            background-color: #00bfa5;
+        }
+        .accordion-content {
+            padding: 0 18px;
+            background-color: white;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.2s ease-out;
+        }
+        .info-box {
+            background-color: #00897b;
+            color: white;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+        .info-box::before {
+            content: "💡";
+            margin-right: 10px;
+        }
+        .highlight {
+            color: #00897b;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="accordion">
+        <button class="accordion-header">Años 90-2000s</button>
+        <div class="accordion-content">
+            <p>La realidad es que <span class="highlight">no existe un punto concreto</span> en la historia en el que el trabajo de community manager se instaurase de forma global ya que, al igual que Internet, el medio en el que se mueve, es algo que ha ido evolucionando poco a poco hasta la figura que conocemos hoy.</p>
+           
+            <p><span class="highlight">Durante la década de los 90</span>, este cargo quedaba relegado al personal de RR.PP. (relaciones públicas) respondiendo emails de los usuarios.</p>
+           
+            <p><span class="highlight">Con la llegada de las primeras redes sociales</span> y plataformas online a principios de los 2000, <span class="highlight">especialmente entre 2004 y 2006</span> con la aparición de titanes como Facebook (Meta), YouTube o Twitter (X) la carga de trabajo que suponía mantener estas plataformas hizo que poco a poco las empresas cambiasen su metodología, creando departamentos separados únicamente para la gestión de estas.</p>
+           
+            <div class="info-box">
+                <strong>Sabías que...</strong> Aunque no está determinado a ciencia exacta quién fue el primer community manager de la historia, se le suele atribuir el logro a Connie Bensen en 2005, quien por aquel entonces era la ejecutiva de RR.PP. de la compañía Dell al recalcar por aquel entonces la importancia de las comunidades en las Social Media.
+            </div>
+        </div>
+    </div>
+   
+    <div class="accordion">
+        <button class="accordion-header">Actualidad</button>
+        <div class="accordion-content">
+            <p>Contenido de la sección "Actualidad"...</p>
+        </div>
+    </div>
+
+    <script>
+        var acc = document.getElementsByClassName("accordion-header");
+        var i;
+
+        for (i = 0; i < acc.length; i++) {
+            acc[i].addEventListener("click", function() {
+                // Cerrar el acordeón abierto actualmente
+                var currentlyActive = document.querySelector(".accordion-header.active");
+                if (currentlyActive && currentlyActive !== this) {
+                    currentlyActive.classList.remove("active");
+                    currentlyActive.nextElementSibling.style.maxHeight = null;
+                }
+
+                // Alternar el estado del acordeón clickeado
+                this.classList.toggle("active");
+                var content = this.nextElementSibling;
+                if (content.style.maxHeight) {
+                    content.style.maxHeight = null;
+                } else {
+                    content.style.maxHeight = content.scrollHeight + "px";
+                }
+            });
+        }
+    </script>
+</body>
+</html>
