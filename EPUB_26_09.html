@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reproductor EPUB Interactivo</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/epubjs/dist/epub.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+      body {
+        margin: auto 0 !important;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        display: flex;
+        flex-direction: column;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      #viewer {
+        flex-grow: 1;
+        transition: margin-left 0.3s ease;
+        position: relative;
+        width: 100vw;
+        height: 98vh;
+      }
+
+      #viewer iframe {
+        top: 0 !important;
+        left: 20vh !important;
+        display: block;
+      }
+
+      #controls {
+        display: flex;
+        align-items: center;
+        padding: 12px 1%;
+        position: fixed;
+        bottom: 0;
+        width: max-content;
+        box-sizing: border-box;
+        z-index: 300;
+        transition: background-color 0.3s;
+      }
+
+      #controls button,
+      #controls .file-btn {
+        padding: 0.6rem;
+        margin: 0.3rem 0;
+        border: none;
+        border-radius: 8px;
+        background-color: #255541;
+        color: white;
+        cursor: pointer;
+        transition: background-color 0.3s, transform 0.2s;
+        font-size: 0.6rem;
+      }
+
+      #controls button:hover,
+      #controls .file-btn:hover {
+        background-color: #2f8e67;
+        transform: scale(1.05);
+      }
+
+      #controls i {
+        font-size: 1.4rem;
+      }
+
+      #file-input-horizontal,
+      #file-input-vertical {
+        display: none;
+      }
+
+      #loading {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 2rem;
+        font-weight: bold;
+        color: #0078d4;
+        display: none;
+      }
+
+      #toggle-sidebar {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background-color: #0078d4;
+        color: white;
+        border: none;
+        padding: 12px;
+        font-size: 1.4rem;
+        cursor: pointer;
+        border-radius: 50%;
+        transition: background-color 0.3s, transform 0.2s;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        z-index: 301;
+      }
+
+      #fullscreen-btn {
+        background-color: #0078d4;
+        border: none;
+        color: white;
+        font-size: 1rem;
+        padding: 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.3s, transform 0.2s;
+      }
+
+      .nav-button {
+        position: fixed;
+        bottom: 5%;
+        transform: translateY(-50%);
+        background-color: #255541;
+        color: white;
+        border: none;
+        padding: 12px;
+        font-size: 1.4rem;
+        cursor: pointer;
+        border-radius: 20%;
+        transition: background-color 0.3s, transform 0.2s;
+        z-index: 301;
+      }
+      .nav-button:hover{background: #2f8e67}
+
+      #prev-button {
+        left: 5px;
+      }
+
+      #next-button {
+        right: 5px;
+      }
+      @media (max-width: 768px) {
+        #controls {
+          background: transparent;
+          box-sizing: border-box;
+          padding: 10px;
+          margin: 0;
+        }
+        .nav-button{
+          padding: 5px;
+          font-size: 0.7rem;
+        }
+        svg{height: 2.5vh}
+      }
+  </style>
+</head>
+
+<body>
+
+  <div id="epub-container" class="normal-mode">
+    <div id="viewer">
+      <div id="loading">Cargando...</div>
+    </div>
+    <div id="controls">
+      <label id="Subir-Horizontal" title="Cargar EPUB Horizontal" class="file-btn" for="file-input-horizontal">
+        EPUB Horizontal
+      </label>
+      <input type="file" id="file-input-horizontal" accept=".epub" onchange="handleFileUpload(event, 'horizontal')">
+      
+      <label id="Subir-Vertical" title="Cargar EPUB Vertical" class="file-btn" for="file-input-vertical">
+        EPUB Vertical
+      </label>
+      <input type="file" id="file-input-vertical" accept=".epub" onchange="handleFileUpload(event, 'vertical')">
+    </div>
+
+    <button id="prev-button" class="nav-button" title="Página Anterior" onclick="prevPage()">◀</button>
+    <button id="next-button" class="nav-button" title="Página Siguiente" onclick="nextPage()">▶</button>
+  </div>
+
+</body>
+
+<script>
+  let currentBook, currentRendition;
+  let horizontalEpub, verticalEpub;
+  let currentCfi = null;  // Para almacenar la posición actual
+
+  function loadEpub(epubFile) {
+    document.getElementById('loading').style.display = 'block';
+
+    if (currentBook) {
+      // Guardar la posición actual antes de destruir el libro
+      currentCfi = currentRendition.location.start.cfi;
+      currentBook.destroy();
+    }
+
+    currentBook = ePub(epubFile);
+    currentRendition = currentBook.renderTo("viewer", {
+      width: "100%",
+      height: "100%",
+      spread: "always",
+      allowScriptedContent: true
+    });
+
+    currentRendition.hooks.content.register(function(contents) {
+      const iframe = contents.documentElement.querySelector('iframe');
+      if (iframe) {
+        iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
+      }
+    });
+
+    // Restaurar la posición si existe
+    if (currentCfi) {
+      currentRendition.display(currentCfi);
+    } else {
+      currentRendition.display();
+    }
+
+    // Actualizar currentCfi cada vez que cambie la página
+    currentRendition.on('locationChanged', function(location) {
+      currentCfi = location.start.cfi;
+    });
+
+    extractAspectRatio(epubFile);
+  }
+
+  function extractAspectRatio(epubFile) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      JSZip.loadAsync(e.target.result).then(function(zip) {
+        zip.forEach(function (relativePath, zipEntry) {
+          if (zipEntry.name.endsWith('.xhtml')) {
+            zipEntry.async("string").then(function(content) {
+              const parser = new DOMParser();
+              const doc = parser.parseFromString(content, "application/xhtml+xml");
+              const body = doc.querySelector('body');
+
+              if (body && body.hasAttribute('style')) {
+                const style = body.getAttribute('style');
+                const widthMatch = style.match(/width:\s*(\d+)px/);
+                const heightMatch = style.match(/height:\s*(\d+)px/);
+
+                if (widthMatch && heightMatch) {
+                  const width = parseInt(widthMatch[1]);
+                  const height = parseInt(heightMatch[1]);
+                  const aspectRatio = (width / height).toFixed(2);
+                  adjustViewerSize(aspectRatio); // Reajustar solo después de calcular el AR
+                }
+              }
+            });
+          }
+        });
+      });
+    };
+    reader.readAsArrayBuffer(epubFile);
+  }
+
+  function adjustViewerSize(aspectRatio) {
+    const viewer = document.getElementById('viewer');
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    let newWidth, newHeight;
+
+    // Cálculo del AR actual antes de reajustar
+    const currentAspectRatio = viewer.clientWidth / viewer.clientHeight;
+
+    if (aspectRatio > viewportWidth / viewportHeight) {
+      newWidth = viewportWidth;
+      newHeight = newWidth / aspectRatio;
+    } else {
+      newHeight = viewportHeight;
+      newWidth = newHeight * aspectRatio;
+    }
+
+    // Establecer nuevo tamaño y centrar el visualizador
+    viewer.style.width = `${newWidth}px`;
+    viewer.style.height = `${newHeight}px`;
+    viewer.style.margin = `${(viewportHeight - newHeight) / 2}px auto`;
+  }
+
+  function handleFileUpload(event, type) {
+    const file = event.target.files[0];
+    if (file) {
+      if (type === 'horizontal') {
+        horizontalEpub = file;
+      } else if (type === 'vertical') {
+        verticalEpub = file;
+      }
+      checkAspectRatio(true);  // Pasar true para indicar que es una carga de archivo
+    }
+  }
+
+  function checkAspectRatio(isFileUpload = false) {
+    const aspectRatio = window.innerWidth / window.innerHeight;
+    let epubToLoad;
+
+    if (aspectRatio > 0.75) {
+      epubToLoad = horizontalEpub;
+    } else {
+      epubToLoad = verticalEpub;
+    }
+
+    if (epubToLoad) {
+      // Solo cargar si es una carga de archivo o si el EPUB ha cambiado
+      if (isFileUpload || epubToLoad !== currentBook.packaging.file) {
+        loadEpub(epubToLoad);
+      } else {
+        // Si solo es un cambio de tamaño, ajustar el tamaño del visor
+        adjustViewerSize(aspectRatio);
+      }
+    }
+  }
+
+  function prevPage() {
+    if (currentRendition) {
+      currentRendition.prev();
+    }
+  }
+
+  function nextPage() {
+    if (currentRendition) {
+      currentRendition.next();
+    }
+  }
+
+  window.addEventListener('resize', checkAspectRatio);
+</script>
+</html>
